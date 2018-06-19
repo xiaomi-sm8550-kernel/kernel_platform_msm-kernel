@@ -153,6 +153,14 @@ ifndef KBUILD_MIXED_TREE
 all:	Image.gz
 endif
 
+KBUILD_DTBO_IMG := dtbo.img
+
+export DTC_FLAGS := -@
+
+$(KBUILD_DTBO_IMG): dtbs
+	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+
+all: $(KBUILD_DTBO_IMG)
 
 Image: vmlinux
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
