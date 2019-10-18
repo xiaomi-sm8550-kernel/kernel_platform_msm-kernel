@@ -1240,6 +1240,9 @@ PHONY += headers_install
 headers_install: headers
 	$(call cmd,headers_install)
 
+techpack-dirs := $(shell find $(srctree)/techpack -maxdepth 1 -mindepth 1 -type d -not -name ".*")
+techpack-dirs := $(subst $(srctree)/,,$(techpack-dirs))
+
 headers:
 ifeq ($(KBUILD_EXTMOD),)
 	$(if $(filter um, $(SRCARCH)), $(error Headers not exportable for UML))
