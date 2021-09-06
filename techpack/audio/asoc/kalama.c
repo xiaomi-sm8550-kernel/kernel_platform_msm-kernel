@@ -263,7 +263,7 @@ static void msm_set_upd_config(struct snd_soc_pcm_runtime *rtd)
 			pdata->get_dev_num = wsa884x_codec_get_dev_num;
 	} else {
 		if (pdata->wcd_used == WCD937X_DEV_INDEX) {
-			pdata->get_dev_num = wcd937x_codec_get_dev_num;
+			panic("Device is wcd937x, which is unsupported");
 		} else if (pdata->wcd_used == WCD938X_DEV_INDEX) {
 			pdata->get_dev_num = wcd938x_codec_get_dev_num;
 		} else if (pdata->wcd_used == WCD939X_DEV_INDEX) {
@@ -1413,7 +1413,7 @@ static int msm_snd_card_late_probe(struct snd_soc_card *card)
 
 	switch (pdata->wcd_used) {
 	case WCD937X_DEV_INDEX:
-		ret = wcd937x_mbhc_hs_detect(component, &wcd_mbhc_cfg);
+		panic("Device is wcd937x, which is unsupported");
 		break;
 	case WCD938X_DEV_INDEX:
 		ret = wcd938x_mbhc_hs_detect(component, &wcd_mbhc_cfg);
@@ -1847,9 +1847,7 @@ static int msm_rx_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 	}
 
 	if (pdata->wcd_used == WCD937X_DEV_INDEX) {
-		wcd937x_info_create_codec_entry(pdata->codec_root, component);
-		codec_variant = wcd937x_get_codec_variant(component);
-		dev_dbg(component->dev, "%s: variant %d\n", __func__, codec_variant);
+		panic("Device is wcd937x, which is unsupported");
 	} else if (pdata->wcd_used == WCD938X_DEV_INDEX) {
 		wcd938x_info_create_codec_entry(pdata->codec_root, component);
 		codec_variant = wcd938x_get_codec_variant(component);
