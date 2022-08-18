@@ -2,7 +2,7 @@ KERNEL_SRC ?= /lib/modules/$(shell uname -r)/build
 
 M ?= $(shell pwd)
 
-KBUILD_OPTIONS += NFC_ROOT=$(KERNEL_SRC)/$(M)
+KBUILD_OPTIONS += NFC_ROOT=$(srctree)/techpack/nxp
 KBUILD_OPTIONS += KBUILD_EXTRA_SYMBOLS=$(ANDROID_BUILD_TOP)/out/vendor/qcom/opensource/securemsm-kernel/Module.symvers
 
 all:

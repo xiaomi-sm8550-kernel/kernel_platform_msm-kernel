@@ -1,5 +1,4 @@
-
-KDIR := $(TOP)/kernel_platform/common
+TOUCH_ROOT := $(srctree)/techpack/touch
 
 ifeq ($(CONFIG_ARCH_WAIPIO), y)
 	include $(TOUCH_ROOT)/config/gki_waipiotouch.conf
