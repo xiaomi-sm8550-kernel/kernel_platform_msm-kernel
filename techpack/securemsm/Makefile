@@ -1,5 +1,5 @@
 M=$(PWD)
-SSG_MODULE_ROOT=$(KERNEL_SRC)/$(M)
+SSG_MODULE_ROOT=$(srctree)/techpack/securemsm
 INC=-I/$(M)/linux/*
 KBUILD_OPTIONS+=SSG_MODULE_ROOT=$(SSG_MODULE_ROOT)
 

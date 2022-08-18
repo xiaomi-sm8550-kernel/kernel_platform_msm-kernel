@@ -1,5 +1,7 @@
-LINUXINCLUDE   += -I$(NFC_ROOT)/../../../qcom/opensource/securemsm-kernel/smcinvoke/
-LINUXINCLUDE   += -I$(NFC_ROOT)/../../../qcom/opensource/securemsm-kernel/linux/
+NFC_ROOT=$(srctree)/techpack/nfc-st
+
+LINUXINCLUDE   += -I$(NFC_ROOT)/../../techpack/securemsm/smcinvoke/
+LINUXINCLUDE   += -I$(NFC_ROOT)/../../techpack/securemsm/linux/
 
 obj-m += stm_nfc_i2c.o
 
