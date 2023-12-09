@@ -314,7 +314,7 @@ quiet_cmd_gzip = GZIP    $@
 
 # DTC
 # ---------------------------------------------------------------------------
-DTC ?= $(objtree)/scripts/dtc/dtc
+DTC ?= $(objtree)/scripts/dtc-aosp/dtc-aosp
 DTC_FLAGS += -Wno-interrupt_provider
 
 # Silence all DTC warnings by default
