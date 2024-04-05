@@ -29,3 +29,8 @@ obj-$(CONFIG_INPUT_MISC)	+= misc/
 obj-$(CONFIG_INPUT_APMPOWER)	+= apm-power.o
 
 obj-$(CONFIG_RMI4_CORE)		+= rmi4/
+
+ifneq (, $(filter $(word 2,$(subst _, ,$(TARGET_PRODUCT))), vermeer))
+        KBUILD_CPPFLAGS += -DCONFIG_TARGET_PRODUCT_VERMEER
+        KBUILD_CPPFLAGS += -DQCOM_HAPTIC_F0_PROTECT
+endif
