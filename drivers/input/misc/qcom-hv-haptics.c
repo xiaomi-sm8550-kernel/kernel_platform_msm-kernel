@@ -48,6 +48,10 @@
 #endif /* RICHTAP_FOR_PMIC_ENABLE */
 #include "xm-haptic.h"
 
+#ifdef CONFIG_MI_HARDWARE_ID
+#include "../../../drivers/misc/hwid/hwid.h"
+#endif /* CONFIG_MI_HARDWARE_ID */
+
 /* status register definitions in HAPTICS_CFG module */
 #define HAP_CFG_REVISION1_REG			0x00
 #define HAP_CFG_V1				0x1
@@ -370,7 +374,10 @@
 #define FIFO_PRGM_INIT_SIZE			320
 
 /* LRA calibration */
-#ifdef CONFIG_TARGET_PRODUCT_NUWA
+#ifdef CONFIG_MI_HARDWARE_ID
+#define LRA_CALIBRATION_VMAX_HDRM_MV	500
+#define LRA_CALIBRATION_VMAX_HDRM_MV_NUWA	1000
+#elif defined(CONFIG_TARGET_PRODUCT_NUWA)
 #define LRA_CALIBRATION_VMAX_HDRM_MV	1000
 #else
 #define LRA_CALIBRATION_VMAX_HDRM_MV	500
@@ -724,7 +731,7 @@ struct haptics_chip {
 	bool				hpwr_vreg_enabled;
 	bool				is_hv_haptics;
 	bool				hboost_enabled;
-#if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
+#if defined(CONFIG_MI_HARDWARE_ID) || defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
 	struct power_supply		*wls_psy;
 #endif
 #ifdef RICHTAP_FOR_PMIC_ENABLE
@@ -2158,7 +2165,7 @@ static int haptics_get_fifo_fill_status(struct haptics_chip *chip, u32 *fill)
 	return 0;
 }
 
-#if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
+#if defined(CONFIG_MI_HARDWARE_ID) || defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
 static bool get_wls_backcharge_enable(struct haptics_chip *chip) {
 	int rc;
 	union power_supply_propval val;
@@ -2185,7 +2192,15 @@ static int haptics_get_available_fifo_memory(struct haptics_chip *chip)
 {
 	int rc;
 	u32 fill, available;
-#if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
+#ifdef CONFIG_MI_HARDWARE_ID
+	const char *product_name = product_name_get();
+		if (get_wls_backcharge_enable(chip)) {
+			dev_dbg(chip->dev, "wireless backcharge enabled, skip haptics!");
+			XM_HAP_HBOOST_EXCEPTION("wireless backcharge", "haptic driver busy, skip haptics");
+			return -EBUSY;
+		}
+	}
+#elif defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
 	if (get_wls_backcharge_enable(chip)) {
 		dev_dbg(chip->dev, "wireless backcharge enabled, skip haptics!");
 		XM_HAP_HBOOST_EXCEPTION("wireless backcharge", "haptic driver busy, skip haptics");
@@ -2498,6 +2513,10 @@ static int haptics_load_predefined_effect(struct haptics_chip *chip,
 
 static int haptics_init_custom_effect(struct haptics_chip *chip)
 {
+#ifdef CONFIG_MI_HARDWARE_ID
+	const char *product_name = product_name_get();
+#endif
+
 	chip->custom_effect = devm_kzalloc(chip->dev,
 			sizeof(*chip->custom_effect), GFP_KERNEL);
 	if (!chip->custom_effect)
@@ -2512,7 +2531,21 @@ static int haptics_init_custom_effect(struct haptics_chip *chip)
 	chip->custom_effect->pattern = NULL;
 	chip->custom_effect->brake = NULL;
 	chip->custom_effect->id = UINT_MAX;
-#ifdef CONFIG_TARGET_PRODUCT_FUXI
+#ifdef CONFIG_MI_HARDWARE_ID
+	if (strcmp(product_name, "fuxi") == 0) {
+		chip->custom_effect->vmax_mv = 8150;
+	} else if (strcmp(product_name, "babylon") == 0) {
+		chip->custom_effect->vmax_mv = 8300;
+	} else if (strcmp(product_name, "nuwa") == 0) {
+		chip->custom_effect->vmax_mv = 8000;
+	} else if (strcmp(product_name, "socrates") == 0) {
+		chip->custom_effect->vmax_mv = 7800;
+	} else if (strcmp(product_name, "ishtar") == 0) {
+		chip->custom_effect->vmax_mv = 8500;
+	} else {
+		chip->custom_effect->vmax_mv = chip->config.custom_vmax_mv;
+	}
+#elif defined(CONFIG_TARGET_PRODUCT_FUXI)
 	chip->custom_effect->vmax_mv = 8150;
 #elif defined(CONFIG_TARGET_PRODUCT_BABYLON)
 	chip->custom_effect->vmax_mv = 8300;
@@ -2897,7 +2930,15 @@ static int haptics_upload_effect(struct input_dev *dev,
 		return 0;
 	}
 
-#if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
+#ifdef CONFIG_MI_HARDWARE_ID
+	const char *product_name = product_name_get();
+	if (strcmp(product_name, "nuwa") == 0 || strcmp(product_name, "fuxi") == 0 || strcmp(product_name, "ishtar") == 0) {
+		if (get_wls_backcharge_enable(chip)) {
+			dev_dbg(chip->dev, "wireless backcharge enabled, skip haptics!");
+			return 0;
+		}
+	}
+#elif defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
 	if (get_wls_backcharge_enable(chip)) {
 		dev_dbg(chip->dev, "wireless backcharge enabled, skip haptics!");
 		return 0;
@@ -3011,7 +3052,15 @@ static int haptics_playback(struct input_dev *dev, int effect_id, int val)
 	struct haptics_play_info *play = &chip->play;
 	int rc;
 
-#if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
+#ifdef CONFIG_MI_HARDWARE_ID
+	const char *product_name = product_name_get();
+	if (strcmp(product_name, "nuwa") == 0 || strcmp(product_name, "fuxi") == 0 || strcmp(product_name, "ishtar") == 0) {
+		if (get_wls_backcharge_enable(chip)) {
+			dev_info(chip->dev, "wireless backcharge enabled, skip haptics!");
+			val = 0;
+		}
+	}
+#elif defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR)
 	if (get_wls_backcharge_enable(chip)) {
 		dev_info(chip->dev, "wireless backcharge enabled, skip haptics!");
 		val = 0;
@@ -5054,7 +5103,15 @@ static int haptics_parse_dt(struct haptics_chip *chip)
 	if(val != 0)
 		dev_err(chip->dev, "qcom,mi_comp_lra not found\n");
 
+#ifdef CONFIG_MI_HARDWARE_ID
+	if (strcmp(product_name_get(), "nuwa") == 0) {
+		config->lra_calibration_vmax_hdrm_mv = LRA_CALIBRATION_VMAX_HDRM_MV_NUWA;
+	} else {
+		config->lra_calibration_vmax_hdrm_mv = LRA_CALIBRATION_VMAX_HDRM_MV;
+	}
+#else
 	config->lra_calibration_vmax_hdrm_mv = LRA_CALIBRATION_VMAX_HDRM_MV;
+#endif
 	of_property_read_u32(node,"qcom,lra_calibration_vmax_hdrm_mv",&config->lra_calibration_vmax_hdrm_mv);
 
 	config->fifo_empty_thresh = get_fifo_empty_threshold(chip);
@@ -5643,6 +5700,9 @@ static int haptics_detect_lra_frequency(struct haptics_chip *chip)
 	int rc;
 	u8 autores_cfg, drv_duty_cfg, amplitude, mask, val = 0;
 	u32 vmax_mv = chip->config.f0_vmax_mv;
+#ifdef CONFIG_MI_HARDWARE_ID
+	const char *product_name = product_name_get();
+#endif
 
 	rc = haptics_read(chip, chip->cfg_addr_base,
 			HAP_CFG_AUTORES_CFG_REG, &autores_cfg, 1);
@@ -5689,7 +5749,15 @@ static int haptics_detect_lra_frequency(struct haptics_chip *chip)
 	if (rc < 0)
 		goto restore;
 
-#if (defined CONFIG_TARGET_PRODUCT_SOCRATES) || (defined CONFIG_TARGET_PRODUCT_FUXI)
+#ifdef CONFIG_MI_HARDWARE_ID
+	if (strcmp(product_name, "socrates") == 0 || strcmp(product_name, "fuxi") == 0) {
+		rc = haptics_config_openloop_lra_period(chip, 5714);
+	} else if (strcmp(product_name, "vermeer") == 0) {
+		rc = haptics_config_openloop_lra_period(chip, 5715);
+	} else {
+		rc = haptics_config_openloop_lra_period(chip, chip->config.t_lra_us);
+	}
+#elif (defined CONFIG_TARGET_PRODUCT_SOCRATES) || (defined CONFIG_TARGET_PRODUCT_FUXI)
 	rc = haptics_config_openloop_lra_period(chip,5714);
 #elif (defined CONFIG_TARGET_PRODUCT_VERMEER)
 	rc = haptics_config_openloop_lra_period(chip,5715);
@@ -5707,7 +5775,13 @@ static int haptics_detect_lra_frequency(struct haptics_chip *chip)
 	if (is_haptics_external_powered(chip))
 		vmax_mv = chip->hpwr_voltage_mv - chip->config.lra_calibration_vmax_hdrm_mv;
 
-#if (defined CONFIG_TARGET_PRODUCT_SOCRATES) || (defined CONFIG_TARGET_PRODUCT_FUXI)
+#ifdef CONFIG_MI_HARDWARE_ID
+	if (strcmp(product_name, "socrates") == 0 || strcmp(product_name, "fuxi") == 0) {
+		rc = haptics_set_vmax_mv(chip, 1400);
+	} else {
+		rc = haptics_set_vmax_mv(chip, vmax_mv);
+	}
+#elif (defined CONFIG_TARGET_PRODUCT_SOCRATES) || (defined CONFIG_TARGET_PRODUCT_FUXI)
 	rc = haptics_set_vmax_mv(chip, 1400);
 #else
 	rc = haptics_set_vmax_mv(chip, vmax_mv);
@@ -6804,7 +6878,13 @@ static int haptics_probe(struct platform_device *pdev)
 	if (rc < 0)
 		dev_err(chip->dev, "Creating debugfs failed, rc=%d\n", rc);
 #endif
-#ifdef CONFIG_TARGET_PRODUCT_NUWA
+#ifdef CONFIG_MI_HARDWARE_ID
+	if (strcmp(product_name_get(), "nuwa") == 0) {
+		rc = haptics_set_vmax_headroom_mv(chip, LRA_CALIBRATION_VMAX_HDRM_MV_NUWA);
+		if (rc < 0)
+			dev_err(chip->dev, "config VMAX_HDRM failed, rc=%d\n", rc);
+	}
+#elif defined(CONFIG_TARGET_PRODUCT_NUWA)
 	rc = haptics_set_vmax_headroom_mv(chip, LRA_CALIBRATION_VMAX_HDRM_MV);
 	if (rc < 0)
 		dev_err(chip->dev, "config VMAX_HDRM failed, rc=%d\n", rc);
