@@ -6154,6 +6154,7 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 	u32 val;
 	bool disable_wakeup;
 
+	pr_info("HI miusb begins %s\n", __func__);
 	mdwc = devm_kzalloc(&pdev->dev, sizeof(*mdwc), GFP_KERNEL);
 	if (!mdwc)
 		return -ENOMEM;
@@ -6385,6 +6386,7 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 
 	dwc3_msm_get_apsd_source(mdwc);
 
+	pr_info("HI miusb %s get role-switch OK!\n", __func__);
 	if (of_property_read_bool(node, "extcon")) {
 		ret = dwc3_msm_extcon_register(mdwc);
 		if (ret)
@@ -6451,6 +6453,7 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 	if (of_property_read_bool(node, "qcom,msm-probe-core-init"))
 		dwc3_ext_event_notify(mdwc);
 
+	pr_info("HI miusb %s OK!\n", __func__);
 	mdwc->force_disconnect = false;
 	return 0;
 
