@@ -2249,3 +2249,7 @@ config TARGET_PRODUCT_VERMEER
 config TARGET_PRODUCT_WANGSHU
 	bool "Target product is wangshu"
 	default n
+
+config MI_CAMERA_FUXI
+	bool "Target product uses fuxi-t-oss camera driver"
+	default n
