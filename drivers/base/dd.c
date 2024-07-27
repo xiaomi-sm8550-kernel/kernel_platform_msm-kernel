@@ -283,7 +283,7 @@ __setup("deferred_probe_timeout=", deferred_probe_timeout_setup);
  */
 int driver_deferred_probe_check_state(struct device *dev)
 {
-	if (!IS_ENABLED(CONFIG_MODULES) && initcalls_done) {
+	if (!IS_ENABLED(CONFIG_MODULES) && !IS_ENABLED(CONFIG_INTEGRATE_MODULES) && initcalls_done) {
 		dev_warn(dev, "ignoring dependency for device, assuming no driver\n");
 		return -ENODEV;
 	}
@@ -332,7 +332,7 @@ static int deferred_probe_initcall(void)
 	flush_work(&deferred_probe_work);
 	initcalls_done = true;
 
-	if (!IS_ENABLED(CONFIG_MODULES))
+	if (!IS_ENABLED(CONFIG_MODULES) && !IS_ENABLED(CONFIG_INTEGRATE_MODULES))
 		fw_devlink_drivers_done();
 
 	/*
