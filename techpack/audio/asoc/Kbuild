@@ -61,7 +61,7 @@ ifeq (0, 0)
 		include $(AUDIO_ROOT)/config/waipioauto.conf
 		INCS    +=  -include $(AUDIO_ROOT)/config/waipioautoconf.h
 	endif
-	ifeq ($(BOARD_PLATFORM), kalama)
+	ifeq ($(CONFIG_ARCH_KALAMA), y)
 		include $(AUDIO_ROOT)/config/kalamaauto.conf
 		INCS    +=  -include $(AUDIO_ROOT)/config/kalamaautoconf.h
 	endif
