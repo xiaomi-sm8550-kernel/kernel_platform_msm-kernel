@@ -24,4 +24,6 @@ source "techpack/bt/slimbus/Kconfig"
 
 source "techpack/bt/btfmcodec/Kconfig"
 
+source "techpack/wlan/Kconfig"
+
 endmenu
