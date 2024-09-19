@@ -1,3 +1,6 @@
+BT_ROOT ?= $(srctree)/techpack/bt
+export BT_ROOT
+
 ifeq ($(CONFIG_MSM_BT_POWER),m)
 KBUILD_CPPFLAGS += -DCONFIG_MSM_BT_POWER
 endif
