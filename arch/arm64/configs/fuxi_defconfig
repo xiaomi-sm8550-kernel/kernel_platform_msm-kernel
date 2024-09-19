@@ -1896,7 +1896,7 @@ CONFIG_GNSS=y
 # CONFIG_GNSS_MTK_SERIAL is not set
 # CONFIG_GNSS_SIRF_SERIAL is not set
 # CONFIG_GNSS_UBX_SERIAL is not set
-CONFIG_MTD=m
+CONFIG_MTD=y
 # CONFIG_MTD_TESTS is not set
 
 #
@@ -1904,7 +1904,7 @@ CONFIG_MTD=m
 #
 # CONFIG_MTD_AR7_PARTS is not set
 # CONFIG_MTD_CMDLINE_PARTS is not set
-CONFIG_MTD_OF_PARTS=m
+CONFIG_MTD_OF_PARTS=y
 # CONFIG_MTD_AFS_PARTS is not set
 # CONFIG_MTD_REDBOOT_PARTS is not set
 # CONFIG_MTD_QCOMSMEM_PARTS is not set
@@ -1913,9 +1913,8 @@ CONFIG_MTD_OF_PARTS=m
 #
 # User Modules And Translation Layers
 #
-CONFIG_MTD_BLKDEVS=m
-CONFIG_MTD_BLOCK=m
-# CONFIG_MTD_BLOCK_RO is not set
+CONFIG_MTD_BLKDEVS=y
+CONFIG_MTD_BLOCK=y
 
 #
 # Note that in some cases UBI block is preferred. See MTD_UBI_BLOCK.
@@ -1966,7 +1965,7 @@ CONFIG_MTD_CFI_I2=y
 # CONFIG_MTD_SLRAM is not set
 # CONFIG_MTD_PHRAM is not set
 # CONFIG_MTD_MTDRAM is not set
-CONFIG_MTD_BLOCK2MTD=m
+CONFIG_MTD_BLOCK2MTD=y
 
 #
 # Disk-On-Chip Device Drivers
@@ -5771,7 +5770,7 @@ CONFIG_STAGING=y
 # Android
 #
 CONFIG_ASHMEM=y
-CONFIG_DEBUG_KINFO=y
+# CONFIG_DEBUG_KINFO is not set
 # end of Android
 
 # CONFIG_STAGING_BOARD is not set
