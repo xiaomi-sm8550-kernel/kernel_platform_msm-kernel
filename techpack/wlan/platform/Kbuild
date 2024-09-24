@@ -1,6 +1,11 @@
 WLAN_PLATFORM_ROOT ?= $(srctree)/techpack/wlan/platform
 export WLAN_PLATFORM_ROOT
 
+LINUXINCLUDE += -I$(WLAN_PLATFORM_ROOT)/../../securemsm/smcinvoke/
+LINUXINCLUDE += -I$(WLAN_PLATFORM_ROOT)/../../securemsm/linux/
+LINUXINCLUDE += -I$(WLAN_PLATFORM_ROOT)/../../securemsm/include/linux/
+LINUXINCLUDE += -I$(WLAN_PLATFORM_ROOT)/../../securemsm/include/uapi/linux/
+
 ifeq ($(CONFIG_CNSS_OUT_OF_TREE),y)
 KBUILD_CPPFLAGS += -DCONFIG_CNSS_OUT_OF_TREE
 endif
