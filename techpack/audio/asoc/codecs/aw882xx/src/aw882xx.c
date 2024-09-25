@@ -2494,9 +2494,9 @@ static void __exit aw882xx_i2c_exit(void)
 }
 module_exit(aw882xx_i2c_exit);
 
+#if IS_ENABLED(CONFIG_MIEV)
 int mievent_report(unsigned int eventid,const char *value,struct device *dev)
 {
-#if IS_ENABLED(CONFIG_MIEV)
 	struct misight_mievent *mievent;
 	char i2c_info[20];
 
@@ -2507,9 +2507,9 @@ int mievent_report(unsigned int eventid,const char *value,struct device *dev)
 	cdev_tevent_add_str(mievent, "Keyword", value);
 	cdev_tevent_write(mievent);
 	cdev_tevent_destroy(mievent);
-#endif
 	return 0;
 }
+#endif
 
 MODULE_DESCRIPTION("ASoC AW882XX Smart PA Driver");
 MODULE_LICENSE("GPL v2");

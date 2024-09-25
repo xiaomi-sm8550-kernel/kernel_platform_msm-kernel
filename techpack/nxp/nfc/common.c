@@ -558,7 +558,7 @@ bool nfc_hw_secure_check(void)
  * Return: -ENOIOCTLCMD if sec_zone_trans val is not supported, 0 if Success(or no issue)
  * and error ret code otherwise
  */
-int nfc_dynamic_protection_ioctl(struct nfc_dev *nfc_dev, unsigned long sec_zone_trans)
+static int nfc_dynamic_protection_ioctl(struct nfc_dev *nfc_dev, unsigned long sec_zone_trans)
 {
 	int ret = 0;
 
