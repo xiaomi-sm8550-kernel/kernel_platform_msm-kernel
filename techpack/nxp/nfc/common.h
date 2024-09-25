@@ -320,6 +320,5 @@ int validate_nfc_state_nci(struct nfc_dev *nfc_dev);
 int nfc_clock_select(struct nfc_dev *nfc_dev);
 int nfc_clock_deselect(struct nfc_dev *nfc_dev);
 int nfc_post_init(struct nfc_dev *nfc_dev);
-int nfc_dynamic_protection_ioctl(struct nfc_dev *nfc_dev, unsigned long sec_zone_trans);
 bool nfc_hw_secure_check(void);
 #endif /* _COMMON_H_ */

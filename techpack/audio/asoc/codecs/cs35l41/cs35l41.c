@@ -5157,9 +5157,9 @@ int cs35l41_remove(struct cs35l41_private *cs35l41)
 	snd_soc_unregister_component(cs35l41->dev);
 	return 0;
 }
+#if IS_ENABLED(CONFIG_MIEV)
 int mievent_report(unsigned int eventid,const char *value,struct device *dev)
 {
-#if IS_ENABLED(CONFIG_MIEV)
 	struct misight_mievent *mievent;
 	char i2c_info[20];
 
@@ -5170,9 +5170,9 @@ int mievent_report(unsigned int eventid,const char *value,struct device *dev)
 	cdev_tevent_add_str(mievent, "Keyword", value);
 	cdev_tevent_write(mievent);
 	cdev_tevent_destroy(mievent);
-#endif
 	return 0;
 }
+#endif
 
 MODULE_DESCRIPTION("ASoC CS35L41 driver");
 MODULE_AUTHOR("David Rhodes, Cirrus Logic Inc, <david.rhodes@cirrus.com>");
