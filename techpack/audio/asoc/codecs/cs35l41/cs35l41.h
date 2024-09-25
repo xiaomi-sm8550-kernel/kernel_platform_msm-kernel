@@ -832,5 +832,7 @@ enum cs35l41_hibernate_state {
 	CS35L41_HIBERNATE_INCOMPATIBLE	= 3,
 };
 
+#ifdef CONFIG_MIEV
 int mievent_report(unsigned int eventid,const char *value,struct device *dev);
+#endif
 #endif /*__CS35L41_H__*/
