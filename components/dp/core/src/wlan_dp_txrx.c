@@ -910,26 +910,6 @@ void dp_rx_monitor_callback(ol_osif_vdev_handle context,
 }
 #endif
 
-/**
- * dp_is_rx_wake_lock_needed() - check if wake lock is needed
- * @nbuf: pointer to sk_buff
- *
- * RX wake lock is needed for:
- * 1) Unicast data packet OR
- * 2) Local ARP data packet
- *
- * Return: true if wake lock is needed or false otherwise.
- */
-static bool dp_is_rx_wake_lock_needed(qdf_nbuf_t nbuf)
-{
-	if ((!qdf_nbuf_pkt_type_is_mcast(nbuf) &&
-	     !qdf_nbuf_pkt_type_is_bcast(nbuf)) ||
-	    qdf_nbuf_is_arp_local(nbuf))
-		return true;
-
-	return false;
-}
-
 #ifdef RECEIVE_OFFLOAD
 /**
  * dp_resolve_rx_ol_mode() - Resolve Rx offload method, LRO or GRO
@@ -1632,7 +1612,6 @@ QDF_STATUS dp_rx_packet_cbk(void *dp_intf_context,
 	qdf_nbuf_t next = NULL;
 	unsigned int cpu_index;
 	struct qdf_mac_addr *mac_addr, *dest_mac_addr;
-	bool wake_lock = false;
 	bool track_arp = false;
 	enum qdf_proto_subtype subtype = QDF_PROTO_INVALID;
 	bool is_eapol, send_over_nl;
@@ -1770,20 +1749,6 @@ QDF_STATUS dp_rx_packet_cbk(void *dp_intf_context,
 			qdf_atomic_inc(&stats->rx_usolict_arp_n_mcast_drp);
 			qdf_nbuf_free(nbuf);
 			continue;
-		}
-
-		/* hold configurable wakelock for unicast traffic */
-		if (!dp_is_current_high_throughput(dp_ctx) &&
-		    dp_ctx->dp_cfg.rx_wakelock_timeout &&
-		    dp_intf->conn_info.is_authenticated)
-			wake_lock = dp_is_rx_wake_lock_needed(nbuf);
-
-		if (wake_lock) {
-			cds_host_diag_log_work(&dp_ctx->rx_wake_lock,
-					dp_ctx->dp_cfg.rx_wakelock_timeout,
-					WIFI_POWER_EVENT_WAKELOCK_HOLD_RX);
-			qdf_wake_lock_timeout_acquire(&dp_ctx->rx_wake_lock,
-					dp_ctx->dp_cfg.rx_wakelock_timeout);
 		}
 
 		/* Remove SKB from internal tracking table before submitting

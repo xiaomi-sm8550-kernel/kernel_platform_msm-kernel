@@ -872,18 +872,6 @@ QDF_STATUS dp_softap_rx_packet_cbk(void *intf_ctx, qdf_nbuf_t rx_buf)
 
 		qdf_nbuf_set_protocol_eth_tye_trans(nbuf);
 
-		/* hold configurable wakelock for unicast traffic */
-		if (!dp_is_current_high_throughput(dp_ctx) &&
-		    dp_ctx->dp_cfg.rx_wakelock_timeout &&
-		    !qdf_nbuf_pkt_type_is_mcast(nbuf) &&
-		    !qdf_nbuf_pkt_type_is_bcast(nbuf)) {
-			cds_host_diag_log_work(&dp_ctx->rx_wake_lock,
-					dp_ctx->dp_cfg.rx_wakelock_timeout,
-					WIFI_POWER_EVENT_WAKELOCK_HOLD_RX);
-			qdf_wake_lock_timeout_acquire(&dp_ctx->rx_wake_lock,
-					dp_ctx->dp_cfg.rx_wakelock_timeout);
-		}
-
 		/* Remove SKB from internal tracking table before submitting
 		 * it to stack
 		 */

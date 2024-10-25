@@ -490,7 +490,6 @@ QDF_STATUS ucfg_dp_psoc_open(struct wlan_objmgr_psoc *psoc)
 	dp_register_pmo_handler();
 	dp_trace_init(psoc);
 	dp_bus_bandwidth_init(psoc);
-	qdf_wake_lock_create(&dp_ctx->rx_wake_lock, "qcom_rx_wakelock");
 
 	return QDF_STATUS_SUCCESS;
 }
@@ -508,7 +507,6 @@ QDF_STATUS ucfg_dp_psoc_close(struct wlan_objmgr_psoc *psoc)
 	dp_rtpm_tput_policy_deinit(psoc);
 	dp_unregister_pmo_handler();
 	dp_bus_bandwidth_deinit(psoc);
-	qdf_wake_lock_destroy(&dp_ctx->rx_wake_lock);
 
 	return QDF_STATUS_SUCCESS;
 }
