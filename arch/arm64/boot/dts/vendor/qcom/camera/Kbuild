@@ -1,0 +1,7 @@
+DTC_INCLUDE += $(srctree)/../sm8550-modules/qcom/opensource/camera-kernel
+
+include $(srctree)/$(src)/config/kalama.mk
+
+always-y	:= $(dtbo-y) $(dtb-y)
+subdir-y	:= $(dts-dirs)
+clean-files	:= *.dtb *.dtbo
