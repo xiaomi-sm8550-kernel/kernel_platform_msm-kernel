@@ -3099,6 +3099,107 @@ static void binder_transaction(struct binder_proc *proc,
 	struct list_head pf_head;
 	const void __user *user_buffer = (const void __user *)
 				(uintptr_t)tr->data.ptr.buffer;
+	if (target_thread->transaction_stack != in_reply_to) {
+			binder_user_error("%d:%d got reply transaction with bad target transaction stack %d, expected %d\n",
+				proc->pid, thread->pid,
+				target_thread->transaction_stack ?
+				target_thread->transaction_stack->debug_id : 0,
+				in_reply_to->debug_id);
+			binder_inner_proc_unlock(target_thread->proc);
+			return_error = BR_FAILED_REPLY;
+			return_error_param = -EPROTO;
+			return_error_line = __LINE__;
+			in_reply_to = NULL;
+			target_thread = NULL;
+			goto err_dead_binder;
+    }
+		target_proc = target_thread->proc;
+		target_proc->tmp_ref++;
+		binder_inner_proc_unlock(target_thread->proc);
++   		if (start_rekernel_server() == 0) {
++			if (target_proc
++				&& (NULL != target_proc->tsk)
++				&& (NULL != proc->tsk)
++				&& (task_uid(target_proc->tsk).val <= MAX_SYSTEM_UID)
++				&& (proc->pid != target_proc->pid)
++				&& line_is_frozen(target_proc->tsk)) {
++     				char binder_kmsg[PACKET_SIZE];
++                       	snprintf(binder_kmsg, sizeof(binder_kmsg), "type=Binder,bindertype=reply,oneway=0,from_pid=%d,from=%d,target_pid=%d,target=%d;", proc->pid, task_uid(proc->tsk).val, target_proc->pid, task_uid(target_proc->tsk).val);
++         			send_netlink_message(binder_kmsg, strlen(binder_kmsg));
++			}
++   		}
+	} else {
+		if (tr->target.handle) {
+			struct binder_ref *ref;
+
+			/*
+			 * There must already be a strong ref
+			 * on this node. If so, do a strong
+			 * increment on the node to ensure it
+			 * stays alive until the transaction is
+			 * done.
+			 */
+			binder_proc_lock(proc);
+			ref = binder_get_ref_olocked(proc, tr->target.handle,
+						     true);
+			if (ref) {
+				target_node = binder_get_node_refs_for_txn(
+						ref->node, &target_proc,
+						&return_error);
+			} else {
+				binder_user_error("%d:%d got transaction to invalid handle\n",
+						  proc->pid, thread->pid);
+				return_error = BR_FAILED_REPLY;
+			}
+			binder_proc_unlock(proc);
+		} else {
+			mutex_lock(&context->context_mgr_node_lock);
+			target_node = context->binder_context_mgr_node;
+			if (target_node)
+				target_node = binder_get_node_refs_for_txn(
+						target_node, &target_proc,
+						&return_error);
+			else
+				return_error = BR_DEAD_REPLY;
+			mutex_unlock(&context->context_mgr_node_lock);
+			if (target_node && target_proc->pid == proc->pid) {
+				binder_user_error("%d:%d got transaction to context manager from process owning it\n",
+						  proc->pid, thread->pid);
+				return_error = BR_FAILED_REPLY;
+				return_error_param = -EINVAL;
+				return_error_line = __LINE__;
+				goto err_invalid_target_handle;
+			}
+		}
+		if (!target_node) {
+			/*
+			 * return_error is set above
+			 */
+			return_error_param = -EINVAL;
+			return_error_line = __LINE__;
+			goto err_dead_binder;
+		}
+		e->to_node = target_node->debug_id;
++   		if (start_rekernel_server() == 0) {
++			if (target_proc
++				&& (NULL != target_proc->tsk)
++				&& (NULL != proc->tsk)
++				&& (task_uid(target_proc->tsk).val > MIN_USERAPP_UID)
++				&& (proc->pid != target_proc->pid)
++				&& line_is_frozen(target_proc->tsk)) {
++     				char binder_kmsg[PACKET_SIZE];
++                       	snprintf(binder_kmsg, sizeof(binder_kmsg), "type=Binder,bindertype=transaction,oneway=%d,from_pid=%d,from=%d,target_pid=%d,target=%d;", tr->flags & TF_ONE_WAY, proc->pid, task_uid(proc->tsk).val, target_proc->pid, task_uid(target_proc->tsk).val);
++         			send_netlink_message(binder_kmsg, strlen(binder_kmsg));
++			}
++   		}
+		if (security_binder_transaction(proc->cred,
+						target_proc->cred) < 0) {
+			return_error = BR_FAILED_REPLY;
+			return_error_param = -EPERM;
+			return_error_line = __LINE__;
+			goto err_invalid_target_handle;
+		}
+		binder_inner_proc_lock(proc);
 
 	INIT_LIST_HEAD(&sgc_head);
 	INIT_LIST_HEAD(&pf_head);
