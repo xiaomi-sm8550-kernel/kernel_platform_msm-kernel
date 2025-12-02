@@ -2612,13 +2612,8 @@ static int fts_lock_scan_mode(int mode)
 static int fts_set_report_rate(struct fts_ts_info *info, u32 rate)
 {
 	int res = 0;
-	u8 rate_cmd[3] = { 0xC0, 0x20, 0x00 };
-
-	if (!info->enable_touch_raw)
-		return res;
-
-	if (info->sensor_sleep == true || info->resume_bit == 0)
-		return 0;
+	u8 rate_cmd[10] = { 0xC0, 0x05, 0x00, 0x00, 0x64,
+			    0x0F, 0x02, 0x0F, 0x01, 0x04 };
 
 	rate_cmd[2] = rate;
 	res = fts_write_dma_safe(rate_cmd, ARRAY_SIZE(rate_cmd));
@@ -6966,10 +6961,10 @@ static void fts_resume_work(struct work_struct *work)
 	if (!info->enable_touch_raw && info->enable_thp_fw) {
 		fts_enable_thp_onoff(0);
 	}
+	if (info->reprot_rate >= 0) {
+		fts_set_report_rate(info, info->reprot_rate);
+	}
 	if (info->enable_touch_raw) {
-		if (info->enable_thp_fw && info->reprot_rate >= 0) {
-			fts_set_report_rate(info, info->reprot_rate);
-		}
 		fts_up_interrups_mode(info, 1);
 	}
 #endif
